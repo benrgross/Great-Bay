@@ -1,8 +1,5 @@
 const mysql = require("mysql");
 const inquirer = require("inquirer");
-const { type } = require("os");
-const { bindCallback } = require("rxjs");
-const { exit } = require("process");
 
 const connection = mysql.createConnection({
   port: 3306,
@@ -10,7 +7,7 @@ const connection = mysql.createConnection({
   user: "root",
 
   password: "password",
-  database: "greatbayDB",
+  database: "greatbaydb",
 });
 
 connection.connect((err) => {
@@ -29,8 +26,8 @@ function startChoices() {
         choices: ["POST", "BID", "View Items", "Exit"],
       },
     ])
-    .then(function () {
-      switch (data) {
+    .then(function (data) {
+      switch (data.postORbid) {
         case "POST":
           post();
           break;
@@ -47,4 +44,44 @@ function startChoices() {
     });
 }
 
-function viewItems() {}
+function viewItems() {
+  console.log("\n View All Bid Info... \n");
+  connection.query("SELECT * FROM bid", (err, res) => {
+    if (err) throw err;
+    console.table(res);
+  });
+}
+
+function bid() {
+  connection.query("SELECT * FROM bid", (err, res) => {
+    if (err) throw err;
+    let bidChoices = res.map((res) => res.item);
+    console.table(res);
+
+    inquirer
+      .prompt([
+        {
+          type: "list",
+          name: "bidItem",
+          message: "what would you like to bid on?",
+          list: bidChoices,
+        },
+        {
+          type: "input",
+          name: "bidPrice",
+          message: "how much do you want to bid",
+        },
+      ])
+      .then(function (data) {
+        let itemID;
+        let bidAccept;
+        res.forEach((bid) => {
+          if (data.bidItem === res.item) itemID = res.id;
+          if (res.price < Number(data.bidPrice)) Accept = true;
+          else bidAccept = false;
+        });
+        console.log("bid accept", bidAccept);
+        console.log("itemID", itemID);
+      });
+  });
+}
