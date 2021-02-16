@@ -64,7 +64,7 @@ function bid() {
           type: "list",
           name: "bidItem",
           message: "what would you like to bid on?",
-          list: bidChoices,
+          choices: bidChoices,
         },
         {
           type: "input",
@@ -73,15 +73,39 @@ function bid() {
         },
       ])
       .then(function (data) {
+        console.log(res);
+        console.log(data);
         let itemID;
         let bidAccept;
-        res.forEach((bid) => {
+        let newPrice = Number(data.price);
+        res.forEach((res) => {
           if (data.bidItem === res.item) itemID = res.id;
-          if (res.price < Number(data.bidPrice)) Accept = true;
+          if (res.price < Number(data.price)) bidAccept = true;
           else bidAccept = false;
         });
-        console.log("bid accept", bidAccept);
-        console.log("itemID", itemID);
+        console.log("bidAccept", bidAccept);
+
+        if (bidAccept === true) {
+          const query = connection.query(
+            "UPDATE bid SET ? WHERE ?",
+            [
+              {
+                price: newPrice,
+              },
+              {
+                id: itemID,
+              },
+            ],
+            (err, res) => {
+              if (err) throw err;
+              console.log(`bid of $${newPrice} accepted`);
+              startChoices();
+            }
+          );
+        } else {
+          console.log(`\n please make a bid higher than ${res.price} \n `);
+          viewItems;
+        }
       });
   });
 }
